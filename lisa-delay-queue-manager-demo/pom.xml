@@ -10,10 +10,10 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lisa-delay-queue-manager-test</artifactId>
+    <artifactId>lisa-delay-queue-manager-demo</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>lisa-delay-queue-manager-test</name>
+    <name>lisa-delay-queue-manager-demo</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
