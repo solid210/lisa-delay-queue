@@ -1,0 +1,39 @@
+server:
+  port: 8090
+  servlet:
+    context-path: /
+
+spring:
+  redis:
+    database: 0
+    host: 192.168.95.220
+    port: 6379
+    password:
+    timeout: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+
+lisa-delay-queue:
+  manager-server:
+    crontab-move-to-ready-queue: '0/1 * * * * ?'
+    crontab-clean-stream: '0 */1 * * * ?'
+    crontab-process-pending-message: '0/5 * * * * ?'
+    range-start: '-'
+    range-end: '+'
+    count: 20
+    timeout: 10000
+    delay-time: 20000
+    max-retry-count: 10
+  enabled: true
+  groups:
+    - topic: mystream
+      group: group-1
+      consumer: consumer-1
+      max-length: 10000
+#    - topic: mystream2
+#      group: group-2
+#      consumer: consumer-2

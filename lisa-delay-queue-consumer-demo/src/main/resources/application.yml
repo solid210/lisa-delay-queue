@@ -1,0 +1,31 @@
+server:
+  port: 8092
+  servlet:
+    context-path: /
+
+spring:
+  redis:
+    database: 0
+    host: 192.168.95.220
+    port: 6379
+    password:
+    timeout: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+
+lisa-delay-queue:
+  enabled: true
+  consumer-server:
+    pollTimeoutMillis: 5000
+    pollBatchSize: 10
+  groups:
+    - topic: mystream
+      group: group-1
+      consumer: consumer-1
+#    - topic: mystream2
+#      group: group-2
+#      consumer: consumer-2
