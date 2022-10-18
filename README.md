@@ -1,2 +1,2 @@
 # lisa-delay-queue
-基于redis-stream的延迟队列
+基于redis-stream的延迟消息队列
