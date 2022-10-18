@@ -17,7 +17,13 @@
 
 该项目分别封装了三个服务的boot-starter模块，所以只要引入maven依赖并且启动类注解加上`@SpringBootApplication`就可以正常使用了。
 
-项目依赖Redis，使用到Redis的数据结构有：zset、stream、hash、string
+
+
+项目依赖Redis，使用到Redis的数据结构有：zset、stream、hash、string。
+
+##### 所有针对redis复杂的数据操作（例如一次操作中包含数据转移，删除等操作）都是基于redis脚本的，保证原子化操作。
+
+
 
 具体如下**（后续会补上架构图）**：
 
