@@ -101,6 +101,46 @@
 2. 将pending的消息移动到retry queue；
 3. 清理stream中已经消费完（已经ack）的数据。已经消费完的数据，redis是不会自动帮忙清理的，所以需要手动清理。
 
+相关通讯图如下：
+
+![image-20221019185748811](README.assets/image-20221019185748811.png)
+
+#### 描述如下（每一个分割线都是基于lua脚本的原子操作）
+
+- 1.1 producer生产消息，msgId存储到waiting queue
+- 1.2 msg body存储到 k-v object
+
+------
+
+- 2.1 manager扫描waiting queue中的数据，判断是否到达发送时间
+- 2.2 如果消息到达发送时间，将消息从waiting queue中移动到ready queue中
+
+------
+
+- 3 consumer消费ready queue的消息
+
+------
+
+- 4 如果成功消费，则进行ack处理
+
+------
+
+- 5.1 manager扫描ready queue中ack超时的pending数据
+
+- 5.2 检查pending数据的retry count
+- 5.3 如果retry count未用完，则将pending数据从ready queue移动到retry queue
+- 5.4 移动后，将pending数据的retry count做减1处理
+- 5.5 如果retry count已用完，则将该数据的msgId加入到garbage key中，并将msgId对应的retry count删除
+- 5.6 同时将该数据从retry queue中清理掉
+- 5.7 删除前缀+topic+msgId对应的对象
+
+------
+
+- 6.1 manager扫描retry queue中的数据，判断是否到达重试时间
+- 6.2 如果消息到达重试时间，将消息从retry queue中移动到ready queue中
+
+------
+
 
 
 ### 如何使用
