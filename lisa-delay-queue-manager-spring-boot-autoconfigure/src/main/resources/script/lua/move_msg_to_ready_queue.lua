@@ -2,7 +2,7 @@
 -- 1. move message from waiting queue to ready queue
 -- 2. move message from retry queue to ready queue
 local keyZset = KEYS[1]
-local keyStream = KEYS[2]
+local readyQueueKey = KEYS[2]
 local startScore = ARGV[1]
 local endScore = ARGV[2]
 local count = ARGV[3]
@@ -15,7 +15,7 @@ for i = 1, #msgIdAndScoreList, 2 do
     local msg = msgIdAndScoreList[i] .. '|' .. msgIdAndScoreList[i + 1]
     table.insert(data, msg)
     -- 将取出的msgId存入stream中
-    redis.call('xadd', keyStream, '*', 'msg', msg)
+    redis.call('xadd', readyQueueKey, '*', 'msg', msg)
     -- 从zset中删除这些msgId
     redis.call('zrem', keyZset, tostring(msgId))
 end

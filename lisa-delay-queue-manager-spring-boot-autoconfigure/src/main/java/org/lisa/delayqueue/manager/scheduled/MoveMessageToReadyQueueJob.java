@@ -45,25 +45,25 @@ public class MoveMessageToReadyQueueJob {
     }
 
     private void moveMessageFromWaitingQueueToReadyQueue(DelayQueueConfigProperties.DelayQueueConfig delayQueueConfig, long now) {
-        String redisKeyZset = ZSET_WAITING_QUEUE + delayQueueConfig.getTopic();
-        String redisKeyStream = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
+        String waitingQueueKey = ZSET_WAITING_QUEUE + delayQueueConfig.getTopic();
+        String readyQueueKey = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
         long startScore = 0;
-        List<String> result = moveMessage(redisKeyZset, redisKeyStream, startScore, now, delayQueueConfig.getMovingSize());
+        List<String> result = moveMessage(waitingQueueKey, readyQueueKey, startScore, now, delayQueueConfig.getMovingSize());
         log.info("moveMessageFromWaitingQueueToReadyQueue result:{}", result);
     }
 
     private void moveMessageFromRetryQueueToReadyQueue(DelayQueueConfigProperties.DelayQueueConfig delayQueueConfig, long now) {
-        String redisKeyZset = ZSET_RETRY_QUEUE + delayQueueConfig.getTopic();
-        String redisKeyStream = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
+        String retryQueueKey = ZSET_RETRY_QUEUE + delayQueueConfig.getTopic();
+        String readyQueueKey = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
         long startScore = 0;
-        List<String> result = moveMessage(redisKeyZset, redisKeyStream, startScore, now, delayQueueConfig.getMovingSize());
+        List<String> result = moveMessage(retryQueueKey, readyQueueKey, startScore, now, delayQueueConfig.getMovingSize());
         log.info("moveMessageFromRetryQueueToReadyQueue result:{}", result);
     }
 
-    private List<String> moveMessage(String redisKeyZset, String redisKeyStream, long startScore, long endScore, int count) {
-        log.info("processMessageQueue, redisKeyZset:{}, redisKeyStream:{}, startScore:{}, endScore:{}, count:{}", redisKeyZset, redisKeyStream, startScore, endScore, count);
+    private List<String> moveMessage(String redisKeyZset, String readyQueueKey, long startScore, long endScore, int count) {
+        log.info("processMessageQueue, redisKeyZset:{}, readyQueueKey:{}, startScore:{}, endScore:{}, count:{}", redisKeyZset, readyQueueKey, startScore, endScore, count);
         try {
-            return stringRedisTemplate.execute(getRedisScript(RESOURCE_NAME, LUA_NAME, List.class), Lists.newArrayList(redisKeyZset, redisKeyStream), String.valueOf(startScore), String.valueOf(endScore), String.valueOf(count));
+            return stringRedisTemplate.execute(getRedisScript(RESOURCE_NAME, LUA_NAME, List.class), Lists.newArrayList(redisKeyZset, readyQueueKey), String.valueOf(startScore), String.valueOf(endScore), String.valueOf(count));
         } catch (Exception e) {
             return null;
         }

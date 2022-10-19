@@ -77,6 +77,17 @@ public class SimpleProducerTest {
     }
 
     @Test
+    public void testTimeCompare() throws InterruptedException {
+        String resourceName = "script/lua/test_time_compare.lua";
+        String luaName = "test_time_compare.lua";
+        long expectAt = System.currentTimeMillis();
+        Thread.sleep(1000);
+        long now = System.currentTimeMillis();
+        Boolean result = stringRedisTemplate.execute(getRedisScript(resourceName, luaName, Boolean.class), Lists.newArrayList("mystream"), String.valueOf(expectAt), String.valueOf(now));
+        log.info("Result from lua. result -> {}", result);
+    }
+
+    @Test
     public void testZrangebyscoreV1() {
         zrangeByScoreAndRemove();
     }
@@ -130,8 +141,8 @@ public class SimpleProducerTest {
 
     private void pushMessage() {
         log.info("----------------------------pushMessage----------------------------");
-        String resourceName = "script/lua/push_msg_to_waiting_queue.lua";
-        String luaName = "push_msg_to_waiting_queue.lua";
+        String resourceName = "script/lua/push_msg.lua";
+        String luaName = "push_msg.lua";
         String now = String.valueOf(System.currentTimeMillis() - 10000);
         for (int i = 0; i < 3; i++) {
             String msgId = String.valueOf(UUID.randomUUID());
