@@ -24,8 +24,10 @@ public class DemoService implements ApplicationListener<MessageEvent> {
     @Override
     public void onApplicationEvent(MessageEvent event) {
         log.info("[DemoService#onApplicationEvent], event -> {}", event);
+        String topic = event.getTopic();
         Object source = event.getSource();
-        log.info("source -> {}", source);
+        log.info("topic:{}, source -> {}", topic, source);
+        // 根据不同的topic处理不同的业务逻辑
         Message<String> message = JSONObject.parseObject(String.valueOf(source), new TypeReference<Message<String>>(){
 
         });

@@ -5,6 +5,7 @@ import org.lisa.delayqueue.base.util.SpringContextUtil;
 import org.lisa.delayqueue.producer.dto.OrderInfo;
 import org.lisa.delayqueue.producer.dto.User;
 import lombok.extern.slf4j.Slf4j;
+import org.lisa.delayqueue.producer.util.PublishMessageUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -48,7 +49,7 @@ public class DemoService {
 //        producer2.send(new Message<>(orderInfo));
 
         String topic = "mystream";
-        PublishMessageService.sendMessage(topic, new Message<>(user));
+        PublishMessageUtil.sendMessage(topic, new Message<>(user));
 
         Producer producer3 = SpringContextUtil.getBean(topic + BEAN_NAME_SUFFIX_MESSAGE_PRODUCER, Producer.class);
         user.setName("producer3");

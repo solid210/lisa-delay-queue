@@ -1,5 +1,5 @@
 # lisa-delay-queue
-### 项目介绍
+## 项目介绍
 
 基于redis-stream实现的延迟消息队列。
 
@@ -11,17 +11,15 @@
 
 该项目包含三个服务：`manager`、`producer`、`consumer`，各自分工明确。
 
-`manager`负责消息的调度
+`manager`负责消息的调度，包括消息重试，队列长度修剪（因为stream是不会自动清理掉已经消费过的消息的，所以需要手动修剪）
 
 `producer`是消息的生产者。除了生产消息，什么都不做。
 
 `consumer`是消息的消费者。除了消费消息（也包括ack），什么都不做。
 
-
-
 该项目分别封装了三个服务的boot-starter模块，所以只要引入maven依赖并且启动类注解加上`@SpringBootApplication`就可以正常使用了。
 
-
+------
 
 项目依赖Redis，使用到Redis的数据结构有：zset、stream、hash、string。
 
@@ -91,7 +89,7 @@
 
 用虚线是因为string类型跟其他数据类型不一样，并不是集合类型数据
 
-
+------
 
 ### 关于Manager（消息管理者）
 
@@ -147,6 +145,8 @@
 
 为了方便上手，三个项目各有一个`demo`用于演示如何使用。感兴趣的同学可以跑一下demo
 
+#### maven依赖
+
 当服务端项目作为producer使用时，引入依赖如下：
 
 ```xml
@@ -179,5 +179,195 @@
     <artifactId>lisa-delay-queue-manager-spring-boot-starter</artifactId>
     <version>1.0.0</version>
 </dependency>
+```
+
+
+
+#### 生产消息
+
+producer提供了开箱即用的工具类，方法如下：
+
+```java
+/**
+ * @description: 发送消息工具类
+ * @author: wuxu
+ * @createDate: 2022/10/1
+ */
+public class PublishMessageUtil {
+
+    /** 发送消息（相当于立刻发送）
+     * @param topic Message Topic，即producer yaml文件里配置的topic，因为支持配置多个消息分组，因此使用哪个topic需要指定
+     * @param msg Message Body
+     * @param <T> 消息体中的对象类型
+     */
+    public static <T> void sendMessage(String topic, Message<T> msg) {
+        sendMessage(topic, msg, System.currentTimeMillis());
+    }
+
+    /**
+     * 在指定时间发送消息
+     * @param topic Message Topic，即producer yaml文件里配置的topic，因为支持配置多个消息分组，因此使用哪个topic需要指定
+     * @param msg Message Body
+     * @param expectAt 期望发送时间（毫秒数时间戳，默认当前系统时区）
+     * @param <T> 消息体中的对象类型
+     */
+    public static <T> void sendMessage(String topic, Message<T> msg, long expectAt) {
+        Producer.STREAM_MAP.get(topic).send(msg);
+    }
+
+    /**
+     * 在指定时间发送消息
+     * @param topic Message Topic，即producer yaml文件里配置的topic，因为支持配置多个消息分组，因此使用哪个topic需要指定
+     * @param msg Message Body
+     * @param expectAt 期望发送时间（默认当前系统时区）
+     * @param <T> 消息体中的对象类型
+     */
+    public static <T> void sendMessage(String topic, Message<T> msg, LocalDateTime expectAt) {
+        sendMessage(topic, msg, expectAt.toInstant(ZoneOffset.ofHours(8)).toEpochMilli());
+    }
+
+    /**
+     * 在指定时间发送消息
+     * @param topic Message Topic，即producer yaml文件里配置的topic，因为支持配置多个消息分组，因此使用哪个topic需要指定
+     * @param msg Message Body
+     * @param expectAt 期望发送时间
+     * @param zoneOffset 时区
+     * @param <T> 消息体中的对象类型
+     */
+    public static <T> void sendMessage(String topic, Message<T> msg, LocalDateTime expectAt, ZoneOffset zoneOffset) {
+        sendMessage(topic, msg, expectAt.toInstant(zoneOffset).toEpochMilli());
+    }
+}
+```
+
+
+
+#### 消费消息
+
+基于spring event强大的解耦神器
+
+consumer的stream listener收到消息之后，会将消息封装成`MessageEvent`并发布spring event，代码片段：`applicationEventPublisher.publishEvent(new MessageEvent(topic, body));`
+
+
+
+业务代码只要监听（实现）`ApplicationListener<MessageEvent>`即可，然后根据不同的`topic`处理不同的业务逻辑，参考如下：
+
+```java
+@Slf4j
+@Service
+public class DemoService implements ApplicationListener<MessageEvent> {
+
+    @SneakyThrows
+    @Override
+    public void onApplicationEvent(MessageEvent event) {
+        log.info("[DemoService#onApplicationEvent], event -> {}", event);
+        String topic = event.getTopic();
+        Object source = event.getSource();
+        log.info("topic:{}, source -> {}", topic, source);
+        // 可以根据不同的topic处理不同的业务逻辑
+        
+        
+        Message<String> message = JSONObject.parseObject(String.valueOf(source), new TypeReference<Message<String>>(){
+
+        });
+        log.info("message -> {}", message);
+        Class<?> clazz = message.getClazz();
+        if(User.class.equals(clazz)){
+            User user = JSONObject.parseObject(message.getBody(), User.class);
+            log.info("user -> {}", user);
+        }
+        if(OrderInfo.class.equals(clazz)){
+            OrderInfo orderInfo = JSONObject.parseObject(message.getBody(), OrderInfo.class);
+            log.info("orderInfo -> {}", orderInfo);
+        }
+    }
+}
+```
+
+
+
+------
+
+### 配置文件
+
+#### manager应用服务配置
+
+```yaml
+lisa-delay-queue:
+  manager-server:
+    # manager将消息从waiting queue或者retry queue移动到ready queue的时间间隔，目前配置为1秒1次
+    crontab-move-to-ready-queue: '0/1 * * * * ?'
+    # manager修剪stream长度的定时任务，目前配置为1分钟1次
+    crontab-clean-stream: '0 */1 * * * ?'
+    # manager扫描pending消息（未及时ack）的时间间隔，目前配置为5秒1次
+    crontab-process-pending-message: '0/5 * * * * ?'
+    # 命令举例：xpending stream:ready_queue:mystream group-1 - + 20
+    # range-start、range-end、count 就是上述命令中的 - + 20
+    range-start: '-'
+    range-end: '+'
+    count: 20
+    # pending多久后算超时，开始进行超时处理，目前配置为10000ms
+    timeout: 10000
+    # 对于pending的消息，延迟多久后重试，目前配置为20000ms
+    delay-time: 20000
+    # 最大重试次数
+    max-retry-count: 10
+  # enabed为true时才会在项目启动时运行
+  enabled: true
+  # 消息分组列表，支持多个分组
+  groups:
+      # 消息的topic
+    - topic: mystream
+      # 消息分组名称
+      group: group-1
+      # 消费者名称
+      consumer: consumer-1
+      # stream修剪时保留的长度
+      max-length: 10000
+    - topic: topic2
+      group: group-2
+      consumer: consumer-2
+      max-length: 10000
+```
+
+
+
+#### producer应用服务配置
+
+```yaml
+lisa-delay-queue:
+  # enabed为true时才会在项目启动时运行
+  enabled: true
+  groups:
+    - topic: mystream
+      group: group-1
+    - topic: topic2
+      group: group-2
+```
+
+
+
+#### consumer应用服务配置
+
+```yaml
+lisa-delay-queue:
+  # enabed为true时才会在项目启动时运行
+  enabled: true
+  # consumer的server相关配置
+  consumer-server:
+    # 消息拉取超时时间(单位ms)
+    pollTimeoutMillis: 5000
+    # 批量抓取消息数量
+    pollBatchSize: 10
+  groups:
+      # 消息的topic
+    - topic: mystream
+      # 消息的分组
+      group: group-1
+      # 消费者名称
+      consumer: consumer-1
+    - topic: mystream
+      group: group-1
+      consumer: consumer-1
 ```
 

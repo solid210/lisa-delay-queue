@@ -73,7 +73,7 @@ public class DefaultStreamListener implements StreamListener<String, ObjectRecor
             // 从redis中再取出msgId对应的msgValue
             String msgBodyKey = MESSAGE_BODY + topic + ":" + msgId;
             String body = stringRedisTemplate.opsForValue().get(msgBodyKey);
-            applicationEventPublisher.publishEvent(new MessageEvent(body));
+            applicationEventPublisher.publishEvent(new MessageEvent(topic, body));
 
             // 手动ACK
             ackMessage(topic, group, msgId, msgBodyKey, messageId);
