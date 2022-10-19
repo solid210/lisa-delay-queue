@@ -69,6 +69,14 @@ public class SimpleProducerTest {
     }
 
     @Test
+    public void testListResult(){
+        String resourceName = "script/lua/test_list_result.lua";
+        String luaName = "test_list_result.lua";
+        Object result = stringRedisTemplate.execute(getRedisScript(resourceName, luaName, List.class), Lists.newArrayList("mystream"));
+        log.info("Result from lua. result -> {}", result);
+    }
+
+    @Test
     public void testZrangebyscoreV1() {
         zrangeByScoreAndRemove();
     }

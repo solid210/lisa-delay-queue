@@ -27,19 +27,25 @@
 
 ##### 所有针对redis复杂的数据操作（例如一次操作中包含数据转移，删除等操作）都是基于redis脚本的，保证原子化操作。
 
-
-
-具体如下**（后续会补上架构图）**：
+数据结构如下：
 
 #### waiting queue（等待队列）
 
 数据结构zset。field是msgId，score是延迟消息触发时间。
 
-`manager`会定时扫描waiting queue中的field，当到达延迟消息发送时间后，会将该记录从waiting queue中移除并加入到ready queue中。
+`manager`会定时扫描waiting queue中的元素，当到达延迟消息发送时间后（即score小于等于当前时间戳），会将该记录从waiting queue中移除并加入到ready queue中。数据结构如下图：
+
+![image-20221019164836734](README.assets/image-20221019164836734.png)
+
+
 
 #### ready queue（就绪队列）
 
-数据结构stream。不做任何操作，完全交给consumer去消费，consumer关闭了自动ack机制，需要手动ack（没有异常就ack了）
+数据结构stream。不做任何操作，完全交给consumer去消费，consumer关闭了自动ack机制，需要手动ack（没有异常就ack了）。数据结构如下图
+
+![image-20221019165019235](README.assets/image-20221019165019235.png)
+
+
 
 #### retry queue（重试队列）
 
@@ -49,21 +55,41 @@
 
 `manager`也会定期扫描到达重试时间的数据，将此类数据从重试队列中移除，放入ready queue中。
 
+数据结构如下图：
+
+![image-20221019165059870](README.assets/image-20221019165059870.png)
+
+可以看到数据结构跟waiting queue的数据结构一样，只是Key的前缀不一样。
+
+
+
 #### retry count（重试次数）
 
-数据结构hash。用于存储msgId剩余的重试次数
+数据结构hash。用于存储msgId剩余的重试次数。数据结构如下图
+
+![image-20221019165158272](README.assets/image-20221019165158272.png)
+
+
 
 #### garbage key（垃圾key）
 
-数据结构set。用于存储重试失败并被废弃的msgId。这里的数据不会再被使用，需要手动check。
+数据结构set。用于存储重试失败并被废弃的msgId。这里的数据不会再被使用，需要手动check。数据结构如下图：
+
+![image-20221019165255782](README.assets/image-20221019165255782.png)
+
+
 
 #### K-V
 
 存储关系：MessageId--MessageBody。
 
-前几种数据格式仅仅存储MessageId（即msgId），而真正的消息对象是以KV形式存储的。
+前几种数据格式仅仅存储MessageId（即msgId），而真正的消息对象是以KV形式存储的（在redis中的数据类型是string）。
 
-当ready queue中的消息被正常消费并收到ack消息之后，msgId对于的对象才会被删除。
+当ready queue中的消息被正常消费并收到ack消息之后，msgId对应的对象才会被删除。
+
+![image-20221019165355531](README.assets/image-20221019165355531.png)
+
+用虚线是因为string类型跟其他数据类型不一样，并不是集合类型数据
 
 
 
