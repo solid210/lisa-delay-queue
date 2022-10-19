@@ -1,7 +1,7 @@
 # lisa-delay-queue
 ## 项目介绍
 
-基于redis-stream实现的延迟消息队列。
+基于redis-stream实现的延迟消息队列，可投入生产环境使用。
 
 本来想取名redis stream delay queue的，不过太不个性了，因此给这个项目取名叫Lisa。
 
