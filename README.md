@@ -366,8 +366,8 @@ lisa-delay-queue:
       group: group-1
       # 消费者名称
       consumer: consumer-1
-    - topic: mystream
-      group: group-1
-      consumer: consumer-1
+    - topic: topic2
+      group: group-2
+      consumer: consumer-2
 ```
 
