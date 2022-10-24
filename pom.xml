@@ -18,6 +18,7 @@
         <module>lisa-delay-queue-producer-spring-boot-autoconfigure</module>
         <module>lisa-delay-queue-producer-spring-boot-starter</module>
         <module>lisa-delay-queue-producer-demo</module>
+        <module>lisa-delay-queue-producer-and-manager-demo</module>
 
         <module>lisa-delay-queue-consumer-spring-boot-autoconfigure</module>
         <module>lisa-delay-queue-consumer-spring-boot-starter</module>
