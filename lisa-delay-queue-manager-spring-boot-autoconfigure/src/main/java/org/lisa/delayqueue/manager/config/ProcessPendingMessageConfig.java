@@ -3,16 +3,16 @@ package org.lisa.delayqueue.manager.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import static org.lisa.delayqueue.base.constant.Constant.LISA_DELAY_QUEUE_MANAGER_SERVER_CONFIG_PREFIX;
+
 /**
  * @description:
  * @author: wuxu
  * @createDate: 2022/10/17
  */
 @Data
-@ConfigurationProperties(prefix = ProcessPendingMessageConfig.LISA_DELAY_QUEUE_MANAGER_SERVER_CONFIG_PREFIX)
+@ConfigurationProperties(prefix = LISA_DELAY_QUEUE_MANAGER_SERVER_CONFIG_PREFIX)
 public class ProcessPendingMessageConfig {
-
-    public static final String LISA_DELAY_QUEUE_MANAGER_SERVER_CONFIG_PREFIX = "lisa-delay-queue.manager-server";
 
     /**
      * 命令举例：：xpending stream:ready_queue:mystream group-1 - + 20

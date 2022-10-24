@@ -75,25 +75,25 @@ public class DelayQueueManagerAutoConfiguration implements InitializingBean {
 
     @Bean
     public MoveMessageToReadyQueueJob moveMessageToReadyQueueJob() {
-        log.info("New MoveMessageToReadyQueueJob");
+        log.info("[{}] New MoveMessageToReadyQueueJob", SERVER_NAME_MANAGER);
         return new MoveMessageToReadyQueueJob();
     }
 
     @Bean
     public CleanStreamJob cleanStreamJob() {
-        log.info("New CleanStreamJob");
+        log.info("[{}] New CleanStreamJob", SERVER_NAME_MANAGER);
         return new CleanStreamJob();
     }
 
     @Bean
     public ProcessPendingMessageJob processPendingMessageJob() {
-        log.info("New ProcessPendingMessageJob");
+        log.info("[{}] New ProcessPendingMessageJob", SERVER_NAME_MANAGER);
         return new ProcessPendingMessageJob();
     }
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        log.info("Init message queue data of topic");
+        log.info("[{}] Init message queue data of topic", SERVER_NAME_MANAGER);
         delayQueueConfigProperties.getGroups()
                 .forEach(delayQueueConfig -> {
                     /**
@@ -128,14 +128,14 @@ public class DelayQueueManagerAutoConfiguration implements InitializingBean {
                     initRetryCountHash(delayQueueConfig);
 
                     /**
-                     * 5. 初始化garbage key(zset)
+                     * 5. 初始化garbage key(set)
                      * key = 前缀+topic
                      * value = msgId
                      * score = 放入时间
                      * 当超过重试次数一直无法消费掉的msgId，放入这里
                      * 为了防止该垃圾回收膨胀，会定期清除一些数据（根据数量和时间清除）
                      */
-                    initGarbageKeyZset(delayQueueConfig);
+                    initGarbageKeySet(delayQueueConfig);
                 });
 
     }
@@ -162,7 +162,7 @@ public class DelayQueueManagerAutoConfiguration implements InitializingBean {
         // 无需初始化，使用时会自动初始化
     }
 
-    private void initGarbageKeyZset(DelayQueueConfigProperties.DelayQueueConfig delayQueueConfig) {
+    private void initGarbageKeySet(DelayQueueConfigProperties.DelayQueueConfig delayQueueConfig) {
         // 无需初始化，使用时会自动初始化
     }
 

@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.Resource;
 
+import static org.lisa.delayqueue.base.constant.Constant.SERVER_NAME_MANAGER;
 import static org.lisa.delayqueue.base.constant.Constant.STREAM_READY_QUEUE;
 
 /**
@@ -27,7 +28,7 @@ public class CleanStreamJob {
 //    @Scheduled(cron = "0 0 3 * * ?")
     @Scheduled(cron = "${lisa-delay-queue.manager-server.crontab-clean-stream}")
     public void execute(){
-        log.info("CleanStreamJob");
+        log.info("[{}] CleanStreamJob", SERVER_NAME_MANAGER);
         delayQueueConfigProperties.getGroups()
             .stream()
             .forEach(delayQueueConfig -> {
@@ -36,7 +37,7 @@ public class CleanStreamJob {
                 PendingMessagesSummary pendingMessagesSummary = stringRedisTemplate.opsForStream().pending(streamKey, delayQueueConfig.getGroup());
                 // 所有pending消息的数量
                 long totalPendingMessages = pendingMessagesSummary.getTotalPendingMessages();
-                log.info("totalPendingMessages:{}", totalPendingMessages);
+                log.info("[{}] totalPendingMessages:{}", SERVER_NAME_MANAGER, totalPendingMessages);
                 stringRedisTemplate.opsForStream().trim(streamKey, totalPendingMessages + delayQueueConfig.getMaxLength());
             });
     }

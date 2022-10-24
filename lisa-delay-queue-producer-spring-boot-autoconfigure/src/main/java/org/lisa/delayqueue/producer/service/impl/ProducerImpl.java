@@ -1,12 +1,12 @@
 package org.lisa.delayqueue.producer.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import org.lisa.delayqueue.base.config.DelayQueueConfigProperties;
-import org.lisa.delayqueue.base.entity.Message;
-import org.lisa.delayqueue.producer.service.Producer;
 import com.google.common.collect.Lists;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.lisa.delayqueue.base.config.DelayQueueConfigProperties;
+import org.lisa.delayqueue.base.entity.Message;
+import org.lisa.delayqueue.producer.service.Producer;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -37,7 +37,7 @@ public class ProducerImpl implements Producer, InitializingBean {
     @Override
     public <T> void send(Message<T> msg) {
         LocalDateTime nowDateTime = LocalDateTime.now();
-        log.info("send msg. msg -> {}, nowDateTime -> {}", msg, nowDateTime);
+        log.info("[{}] send msg. msg -> {}, nowDateTime -> {}", SERVER_NAME_PRODUCER, msg, nowDateTime);
         long now = nowDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         send(msg, now);
     }
@@ -52,20 +52,20 @@ public class ProducerImpl implements Producer, InitializingBean {
         String msgBodyKey = MESSAGE_BODY + topic + ":" + msgId;
         String msgBodyValue = JSONObject.toJSONString(msg);
         String now = String.valueOf(System.currentTimeMillis());
-        log.info("[开始]调用lua脚本添加延时消息。waitingQueueKey:{}, readyQueueKey:{}, msgId:{}, score:{}, msgBodyKey:{}, msgBodyValue:{}, now:{}", waitingQueueKey, readyQueueKey, msgId, score, msgBodyKey, msgBodyValue, now);
+        log.info("[{}] [开始]调用lua脚本添加延时消息。waitingQueueKey:{}, readyQueueKey:{}, msgId:{}, score:{}, msgBodyKey:{}, msgBodyValue:{}, now:{}", SERVER_NAME_PRODUCER, waitingQueueKey, readyQueueKey, msgId, score, msgBodyKey, msgBodyValue, now);
         Boolean result = stringRedisTemplate.execute(getRedisScript(RESOURCE_NAME, LUA_NAME, Boolean.class), Lists.newArrayList(waitingQueueKey, readyQueueKey), msgId, score, msgBodyKey, msgBodyValue, now);
-        log.info("[结束]调用lua脚本添加延时消息。msgId:{}, result:{}", msgId, result);
+        log.info("[{}] [结束]调用lua脚本添加延时消息。msgId:{}, result:{}", SERVER_NAME_PRODUCER, msgId, result);
     }
 
     @Override
     public <T> void send(Message<T> msg, LocalDateTime expectAt) {
-        log.info("send msg with expectAt. msg -> {}, expectAt(LocalDateTime) -> {}", msg, expectAt);
+        log.info("[{}] send msg with expectAt. msg -> {}, expectAt(LocalDateTime) -> {}", SERVER_NAME_PRODUCER, msg, expectAt);
         send(msg, expectAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
     }
 
     @Override
     public <T> void send(Message<T> msg, LocalDateTime expectAt, ZoneOffset zoneOffset) {
-        log.info("send msg with expectAt and zoneOffset. msg -> {}, expectAt(LocalDateTime) -> {}, zoneOffset -> {}", msg, expectAt, zoneOffset);
+        log.info("[{}] send msg with expectAt and zoneOffset. msg -> {}, expectAt(LocalDateTime) -> {}, zoneOffset -> {}", SERVER_NAME_PRODUCER, msg, expectAt, zoneOffset);
         send(msg, expectAt.toInstant(zoneOffset).toEpochMilli());
     }
 

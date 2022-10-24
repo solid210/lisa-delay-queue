@@ -30,6 +30,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.lisa.delayqueue.base.constant.Constant.SERVER_NAME_CONSUMER;
 import static org.lisa.delayqueue.base.constant.Constant.STREAM_READY_QUEUE;
 
 /**
@@ -68,7 +69,7 @@ public class DelayQueueConsumerAutoConfiguration {
     public Map<String, StreamMessageListenerContainer<String, ObjectRecord<String, String>>> consumerListenerMap(
             RedisConnectionFactory connectionFactory,
             DefaultStreamListener streamListener) {
-        log.info("delayQueueConsumerServerConfiguration -> {}", delayQueueConsumerServerConfig);
+        log.info("[{}] delayQueueConsumerServerConfiguration -> {}", SERVER_NAME_CONSUMER, delayQueueConsumerServerConfig);
         return delayQueueConfigProperties.getGroups().stream()
                 .collect(
                         Collectors.toMap(

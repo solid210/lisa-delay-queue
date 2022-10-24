@@ -54,7 +54,7 @@ public class DefaultStreamListener implements StreamListener<String, ObjectRecor
                     .map(DelayQueueConfigProperties.DelayQueueConfig::getGroup)
                     .findFirst()
                     .get();
-            log.info("StreamMessageListener stream message。stream -> {}, messageId -> {}, topic -> {}, value -> {}", message.getStream(), messageId, topic, value);
+            log.info("[{}] StreamMessageListener stream message。stream -> {}, messageId -> {}, topic -> {}, value -> {}", SERVER_NAME_CONSUMER, message.getStream(), messageId, topic, value);
 
             if(StringUtils.contains(value, INIT_MESSAGE)){
                 // 初始化的message，直接ack掉
@@ -68,7 +68,7 @@ public class DefaultStreamListener implements StreamListener<String, ObjectRecor
             long now = System.currentTimeMillis();
             LocalDateTime scoreDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(score), ZoneId.systemDefault());
             LocalDateTime nowDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault());
-            log.info("msgId -> {}, score -> {}, now -> {}, scoreDateTime -> {}, nowDateTime -> {}", msgId, score, now, scoreDateTime, nowDateTime);
+            log.info("[{}] msgId -> {}, score -> {}, now -> {}, scoreDateTime -> {}, nowDateTime -> {}", SERVER_NAME_CONSUMER, msgId, score, now, scoreDateTime, nowDateTime);
 
             // 从redis中再取出msgId对应的msgValue
             String msgBodyKey = MESSAGE_BODY + topic + ":" + msgId;
@@ -89,11 +89,11 @@ public class DefaultStreamListener implements StreamListener<String, ObjectRecor
     }
 
     private void ackMessage(String topic, String group, String msgId, String msgBodyKey, RecordId recordId){
-        log.info("Ack message start. topic -> {}, group -> {}, msgId -> {}, msgBodyKey -> {}, recordId -> {}", topic, group, msgId, msgBodyKey, recordId);
+        log.info("[{}] Ack message start. topic -> {}, group -> {}, msgId -> {}, msgBodyKey -> {}, recordId -> {}", SERVER_NAME_CONSUMER, topic, group, msgId, msgBodyKey, recordId);
         String streamKey = STREAM_READY_QUEUE + topic;
         String retryCountKey = HASH_RETRY_COUNT + topic;
         String garbageKey = SET_GARBAGE_KEY + topic;
         Long count = stringRedisTemplate.execute(getRedisScript(RESOURCE_NAME, LUA_NAME, Long.class), Lists.newArrayList(streamKey, retryCountKey, garbageKey), group, msgId, msgBodyKey, recordId.getValue());
-        log.info("Ack message end. msgId -> {}, count -> {}", msgId, count);
+        log.info("[{}] Ack message end. msgId -> {}, count -> {}", SERVER_NAME_CONSUMER, msgId, count);
     }
 }

@@ -22,4 +22,25 @@ public class Constant {
     public static final String INIT_MESSAGE = "init message...remember lisa, cqy, stone, miles, liam by solid";
 
     public static final String BEAN_NAME_SUFFIX_MESSAGE_PRODUCER = "_MessageProducer";
+
+    public static final String SERVER_NAME_PRODUCER = "lisa-delay-queue-producer";
+
+    public static final String SERVER_NAME_MANAGER = "lisa-delay-queue-manager";
+
+    public static final String SERVER_NAME_CONSUMER = "lisa-delay-queue-consumer";
+
+    /**
+     * consumer服务配置项前缀
+     */
+    public static final String LISA_DELAY_QUEUE_CONSUMER_SERVER_CONFIG_PREFIX = "lisa-delay-queue.consumer-server";
+
+    /**
+     * producer服务配置项前缀
+     */
+    public static final String LISA_DELAY_QUEUE_PRODUCER_SERVER_CONFIG_PREFIX = "lisa-delay-queue.producer-server";
+
+    /**
+     * manager服务配置项前缀
+     */
+    public static final String LISA_DELAY_QUEUE_MANAGER_SERVER_CONFIG_PREFIX = "lisa-delay-queue.manager-server";
 }

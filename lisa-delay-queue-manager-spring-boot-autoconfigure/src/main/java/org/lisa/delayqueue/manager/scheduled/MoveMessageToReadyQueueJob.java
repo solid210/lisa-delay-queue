@@ -37,7 +37,7 @@ public class MoveMessageToReadyQueueJob {
     @Scheduled(cron = "${lisa-delay-queue.manager-server.crontab-move-to-ready-queue}")
     public void execute() {
         long now = System.currentTimeMillis();
-        log.info("move message to ready queue. now -> {}", now);
+        log.info("[{}] move message to ready queue. now -> {}", SERVER_NAME_MANAGER, now);
         delayQueueConfigProperties.getGroups().forEach(delayQueueConfig -> {
             moveMessageFromWaitingQueueToReadyQueue(delayQueueConfig, now);
             moveMessageFromRetryQueueToReadyQueue(delayQueueConfig, now);
@@ -49,7 +49,7 @@ public class MoveMessageToReadyQueueJob {
         String readyQueueKey = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
         long startScore = 0;
         List<String> result = moveMessage(waitingQueueKey, readyQueueKey, startScore, now, delayQueueConfig.getMovingSize());
-        log.info("moveMessageFromWaitingQueueToReadyQueue result:{}", result);
+        log.info("[{}] moveMessageFromWaitingQueueToReadyQueue result:{}", SERVER_NAME_MANAGER, result);
     }
 
     private void moveMessageFromRetryQueueToReadyQueue(DelayQueueConfigProperties.DelayQueueConfig delayQueueConfig, long now) {
@@ -57,11 +57,11 @@ public class MoveMessageToReadyQueueJob {
         String readyQueueKey = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
         long startScore = 0;
         List<String> result = moveMessage(retryQueueKey, readyQueueKey, startScore, now, delayQueueConfig.getMovingSize());
-        log.info("moveMessageFromRetryQueueToReadyQueue result:{}", result);
+        log.info("[{}] moveMessageFromRetryQueueToReadyQueue result:{}", SERVER_NAME_MANAGER, result);
     }
 
     private List<String> moveMessage(String redisKeyZset, String readyQueueKey, long startScore, long endScore, int count) {
-        log.info("processMessageQueue, redisKeyZset:{}, readyQueueKey:{}, startScore:{}, endScore:{}, count:{}", redisKeyZset, readyQueueKey, startScore, endScore, count);
+        log.info("[{}] processMessageQueue, redisKeyZset:{}, readyQueueKey:{}, startScore:{}, endScore:{}, count:{}", SERVER_NAME_MANAGER, redisKeyZset, readyQueueKey, startScore, endScore, count);
         try {
             return stringRedisTemplate.execute(getRedisScript(RESOURCE_NAME, LUA_NAME, List.class), Lists.newArrayList(redisKeyZset, readyQueueKey), String.valueOf(startScore), String.valueOf(endScore), String.valueOf(count));
         } catch (Exception e) {

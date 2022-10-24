@@ -36,7 +36,7 @@ public class ProcessPendingMessageJob {
 //    @Scheduled(cron = "0/5 * * * * ?")
     @Scheduled(cron = "${lisa-delay-queue.manager-server.crontab-process-pending-message}")
     public void execute() {
-        log.info("定时扫描阻塞的消息。processPendingMessageConfiguration -> {}", processPendingMessageConfig);
+        log.info("[{}] 定时扫描阻塞的消息。processPendingMessageConfiguration -> {}", SERVER_NAME_MANAGER, processPendingMessageConfig);
         delayQueueConfigProperties
                 .getGroups()
                 .forEach(this::processPendingMessage);
