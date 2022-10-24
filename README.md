@@ -143,7 +143,9 @@
 
 ### 如何使用
 
-为了方便上手，三个项目各有一个`demo`用于演示如何使用。感兴趣的同学可以跑一下demo
+为了方便上手，三个项目各有一个`demo`用于演示如何使用。感兴趣的同学可以跑一下demo。
+
+另外，有的时候为了节省服务器资源，可以把producer和manager合并，参考`lisa-delay-queue-producer-and-manager`，该项目整合了`producer`和`manager`的配置项，可以部署到一个应用服务中。
 
 #### maven依赖
 
