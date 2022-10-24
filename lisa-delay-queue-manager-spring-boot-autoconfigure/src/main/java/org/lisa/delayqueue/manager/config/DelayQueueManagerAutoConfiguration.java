@@ -147,7 +147,7 @@ public class DelayQueueManagerAutoConfiguration implements InitializingBean {
     private void initReadyQueueStream(DelayQueueConfigProperties.DelayQueueConfig delayQueueConfig) {
         String streamKey = STREAM_READY_QUEUE + delayQueueConfig.getTopic();
         StringRecord stringRecord = StreamRecords.string(Collections.singletonMap("name", JSONObject.toJSONString(new Message<>(INIT_MESSAGE)))).withStreamKey(streamKey);
-        this.stringRedisTemplate.opsForStream().add(stringRecord);
+        stringRedisTemplate.opsForStream().add(stringRecord);
         StreamInfo.XInfoGroups xInfoGroups = stringRedisTemplate.opsForStream().groups(streamKey);
         if (xInfoGroups.isEmpty()) {
             stringRedisTemplate.opsForStream().createGroup(streamKey, delayQueueConfig.getGroup());
